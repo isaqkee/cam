@@ -1,11 +1,137 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Camera</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500&display=swap');
+
+        :root {
+            --color-purple-50: #4d0491;
+            --color-purple-100: #7e33b7;
+            --color-purple-200: #a167c9;
+            --color-gradient: linear-gradient(90deg, var(--color-purple-50), var(--color-purple-100), var(--color-purple-200));
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: var(--color-gradient);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #camera {
+            width: 640px;
+            transform: scaleX(-1);
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #foto {
+            height: 300px;
+            width: 300px;
+            border-radius: 10px;
+            background-size: cover;
+            background-position: 50%;
+            margin: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url(capinha.png);
+            background-size: cover;
+            pointer-events: none;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .texto {
+            text-align: center;
+            font-size: 60px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, #ad5fe1, #9331ee, #5b089a);
+            background-size: 400% 100%;
+            animation: degrade 10s linear infinite alternate;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            outline: none;
+        }
+    </style>
 </head>
+
 <body>
-    
+    <video id="camera" autoplay></video>
+    <button onclick="abrirCamera()">Abrir Câmera</button>
+    <button onclick="tirarFoto()">Tirar Foto</button>
+    <button onclick="fechar()">Fechar Câmera</button>
+
+    <div id="foto">
+        <div class="overlay"></div>
+    </div>
+
+    <div contenteditable="true" class="texto">
+        PERSONALIZE SUA CAPINHA - KAPA SQUARE
+    </div>
+
+    <script>
+        var mediaStream;
+        var downloadLink = document.createElement('a');
+
+        function abrirCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(function (stream) {
+                mediaStream = stream;
+                const areaVideo = document.getElementById('camera');
+                areaVideo.srcObject = stream;
+            }).catch(function (error) {
+                console.error('Erro ao acessar a câmera:', error);
+            });
+        }
+
+        function tirarFoto() {
+            const areaVideo = document.getElementById('camera');
+            const canvas = document.createElement('canvas');
+            canvas.width = areaVideo.videoWidth;
+            canvas.height = areaVideo.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(areaVideo, 0, 0, canvas.width, canvas.height);
+            const imageDataURL = canvas.toDataURL();
+            const fotoDiv = document.getElementById('foto');
+            fotoDiv.style.backgroundImage = `url(${imageDataURL})`;
+            downloadLink.href = imageDataURL;
+            downloadLink.download = 'foto.png';
+            downloadLink.textContent = 'Clique para baixar';
+            document.body.appendChild(downloadLink);
+        }
+
+        function fechar() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                const areaVideo = document.getElementById('camera');
+                areaVideo.srcObject = null;
+                mediaStream = null;
+            }
+        }
+    </script>
 </body>
+
 </html>
